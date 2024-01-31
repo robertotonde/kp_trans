@@ -2,12 +2,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:kp_trans/authentication/login_screen.dart';
 import 'package:kp_trans/global/global_var.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:kp_trans/methods/common_methods.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -21,12 +25,14 @@ class _HomePageState extends State<HomePage> {
       Completer<GoogleMapController>();
   GoogleMapController? controllerGoogleMap;
 
+  CommonMethods cMethods = CommonMethods();
+
   Position? CurrentPositionOfUser;
 
   GlobalKey<ScaffoldState> sKey = GlobalKey<ScaffoldState>();
 
   void updateMapTheme(GoogleMapController controller) {
-    getJsonFileFromThemes("themes/standard_style.json")
+    getJsonFileFromThemes("themes/night_style.json")
         .then((value) => setGoogleMapStyle(value, controller));
   }
 
@@ -55,6 +61,39 @@ class _HomePageState extends State<HomePage> {
         CameraPosition(target: positionOfUserInLatLng, zoom: 17);
     controllerGoogleMap!
         .animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
+
+    await getUserInfoAndBlockStatus();
+  }
+
+  getUserInfoAndBlockStatus() async {
+    DatabaseReference usersRef = FirebaseDatabase.instance
+        .ref()
+        .child("users")
+        .child(FirebaseAuth.instance.currentUser!.uid);
+
+    await usersRef.once().then((snap) {
+      if (snap.snapshot.value != null) {
+        if ((snap.snapshot.value as Map)["blockstatus"] == "no") {
+          setState(() {
+            userName = (snap.snapshot.value as Map)["name"];
+          });
+
+          // Navigator.push(
+          //     context, MaterialPageRoute(builder: (c) => HomePage()));
+        } else {
+          FirebaseAuth.instance.signOut();
+          Navigator.push(
+              context, MaterialPageRoute(builder: (c) => LoiginScreen()));
+          cMethods.displaySnackBar(
+              "user is blocked :contact admin@gmail.com ", context);
+        }
+      } else {
+        FirebaseAuth.instance.signOut();
+        Navigator.push(
+            context, MaterialPageRoute(builder: (c) => LoiginScreen()));
+        // cMethods.displaySnackBar("user does not exist", context);
+      }
+    });
   }
 
   @override
@@ -140,17 +179,24 @@ class _HomePageState extends State<HomePage> {
                   style: TextStyle(color: Colors.grey),
                 ),
               ),
-              ListTile(
-                leading: IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.logout,
-                    color: Colors.grey,
+              GestureDetector(
+                onTap: () {
+                  FirebaseAuth.instance.signOut();
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (c) => LoiginScreen()));
+                },
+                child: ListTile(
+                  leading: IconButton(
+                    onPressed: () {},
+                    icon: const Icon(
+                      Icons.logout,
+                      color: Colors.grey,
+                    ),
                   ),
-                ),
-                title: const Text(
-                  "Logout",
-                  style: TextStyle(color: Colors.grey),
+                  title: const Text(
+                    "Logout",
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ),
               ),
             ],
@@ -163,6 +209,7 @@ class _HomePageState extends State<HomePage> {
       body: Stack(
         children: [
           GoogleMap(
+            padding: const EdgeInsets.only(top: 26),
             mapType: MapType.normal,
             myLocationButtonEnabled: true,
             initialCameraPosition: googlePlexInitialPosition,

@@ -74,7 +74,9 @@ class _LoiginScreenState extends State<LoiginScreen> {
           FirebaseAuth.instance.signOut();
           cMethods.displaySnackBar("user does not exist", context);
         }
-      });
+      }
+      
+      );
     }
   }
 
