@@ -23,6 +23,8 @@ class _HomePageState extends State<HomePage> {
 
   Position? CurrentPositionOfUser;
 
+  GlobalKey<ScaffoldState> sKey = GlobalKey<ScaffoldState>();
+
   void updateMapTheme(GoogleMapController controller) {
     getJsonFileFromThemes("themes/standard_style.json")
         .then((value) => setGoogleMapStyle(value, controller));
@@ -58,6 +60,106 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: sKey,
+      drawer: Container(
+        width: 255,
+        color: Colors.black87,
+        child: Drawer(
+          backgroundColor: Colors.white10,
+          child: ListView(
+            children: [
+              // header
+
+              Container(
+                color: Colors.black,
+                height: 160,
+                child: DrawerHeader(
+                  decoration: const BoxDecoration(color: Colors.black),
+                  child: Row(
+                    children: [
+                      Image.asset(
+                        "assets/images/avatarman.png",
+                        width: 60,
+                        height: 60,
+                      ),
+
+                      // const Icon(
+                      //   Icons.person,
+                      //   size: 60,
+                      // ),
+                      const SizedBox(
+                        width: 16,
+                      ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            userName,
+                            style: const TextStyle(
+                                color: Colors.grey,
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            "profile",
+                            style: TextStyle(color: Colors.white10),
+                          ),
+                          // Text(
+                          //   userName,
+                          //   style: const TextStyle(
+                          //       fontSize: 16, fontWeight: FontWeight.bold),
+                          // ),
+                        ],
+                      )
+                    ],
+                  ),
+                ),
+              ),
+              const Divider(
+                height: 1,
+                color: Colors.white,
+                thickness: 1,
+              ),
+
+              const SizedBox(
+                height: 10,
+              ),
+
+//body
+              ListTile(
+                leading: IconButton(
+                  onPressed: () {},
+                  icon: const Icon(
+                    Icons.info,
+                    color: Colors.grey,
+                  ),
+                ),
+                title: const Text(
+                  "About",
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+              ListTile(
+                leading: IconButton(
+                  onPressed: () {},
+                  icon: const Icon(
+                    Icons.logout,
+                    color: Colors.grey,
+                  ),
+                ),
+                title: const Text(
+                  "Logout",
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+
+      //
+      //googlemap
       body: Stack(
         children: [
           GoogleMap(
@@ -73,7 +175,35 @@ class _HomePageState extends State<HomePage> {
 
               getCurrentLiveLocationOfUser();
             },
-          )
+          ),
+          Positioned(
+              top: 42,
+              left: 19,
+              child: GestureDetector(
+                onTap: () {
+                  sKey.currentState!.openDrawer();
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                      color: Colors.grey,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: const [
+                        BoxShadow(
+                            color: Colors.black26,
+                            blurRadius: 5,
+                            spreadRadius: 0.5,
+                            offset: Offset(0.7, 0.7))
+                      ]),
+                  child: const CircleAvatar(
+                    backgroundColor: Colors.grey,
+                    radius: 20,
+                    child: Icon(
+                      Icons.menu,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ),
+              ))
         ],
       ),
     );
